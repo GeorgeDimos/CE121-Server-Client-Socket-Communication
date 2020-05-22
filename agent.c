@@ -26,7 +26,8 @@ struct flightInfo{
 
 #define MAXINPUT 25
 #define CHECK_MINUS_1(fun) if((fun) == -1){\
-                            fprintf(stderr,"errno: %d at line: %d\n", errno, __LINE__);\
+                            fprintf(stderr,"Agent error %d at line %d ", errno, __LINE__);\
+                            perror(":");\
                             return 1;\
                         }
 
@@ -47,6 +48,7 @@ int main(int argc, char *argv[]){
 
     if(argc!=2){
         printf("Please enter server socket file as argument\n");
+        printf("default is \"soc\"\n");
         return 1;
     }
 

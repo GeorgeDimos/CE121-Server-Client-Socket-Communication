@@ -20,15 +20,16 @@
 #include <sys/sem.h>
 
 #define CHECK_MINUS_1(fun) if((fun) == -1){\
-                            fprintf(stderr,"errno: %d at line: %d\n", errno, __LINE__);\
+                            fprintf(stderr,"Server error %d at line %d ", errno, __LINE__);\
+                            perror(":");\
                             return 1;\
                         }
 
 #define CHECK_NULL(fun) if(!(fun)){\
-                            fprintf(stderr,"errno: %d at line: %d\n", errno, __LINE__);\
+                            fprintf(stderr,"Server error %d at line %d ", errno, __LINE__);\
+                            perror(":");\
                             return 1;\
                         }
-#define PATH "/mnt/c/Users/George/Documents/Mathimata/CE121/hw/hw3/soc"
 #define MAXREAD 512
 #define MAXLINE 25
 
@@ -55,7 +56,8 @@ int main(int argc, char *argv[]){
 
     key_t key, key_sem;
     int fd, fileEntries, shmid, *shm_p;
-    int listening_socket, maxAgents;
+    int listening_socket;
+    int maxAgents;
     struct sockaddr_un addr;
     pid_t pid;
     int n, dataSocket, flags, activeAgents;
@@ -78,7 +80,7 @@ int main(int argc, char *argv[]){
 
 /**********************************  Create Shared Memory  *************************************************************************/
 
-    CHECK_MINUS_1(key = ftok("./r",'d'))
+    CHECK_MINUS_1(key = ftok(".",'1'))
     CHECK_MINUS_1(shmid=shmget(key, sizeof(int)+(fileEntries-1)*sizeof(struct flightInfo),IPC_CREAT|IPC_EXCL|S_IRWXU))
     if((shm_p = (int *)shmat(shmid,NULL,0))==(void *) -1){
         fprintf(stderr,"errno: %d at line: %d\n", errno, __LINE__);
@@ -87,7 +89,7 @@ int main(int argc, char *argv[]){
 
 /**********************************  Create Shemaphores  ***************************************************************************/
     int semid;
-    CHECK_MINUS_1(key_sem = ftok("./r",'a'))
+    CHECK_MINUS_1(key_sem = ftok(".",'2'))
     CHECK_MINUS_1((semid = semget(key_sem, 1, IPC_CREAT|IPC_EXCL|S_IRWXU)))
     CHECK_MINUS_1(semctl(semid,0,SETVAL,1)) // init to 0
 
@@ -105,8 +107,13 @@ int main(int argc, char *argv[]){
 
     CHECK_MINUS_1(listening_socket=socket(AF_UNIX, SOCK_STREAM, 0))
 
-    addr.sun_family=AF_UNIX; 
-    strcpy(addr.sun_path, PATH);
+    addr.sun_family=AF_UNIX;
+    if(!getcwd(buf,255)){
+        fprintf(stderr,"Error geting directory for socket\n");
+        return 1;
+    }
+    strcat(buf,"/soc");
+    strcpy(addr.sun_path, buf);
     CHECK_MINUS_1(bind(listening_socket, (struct sockaddr *)&addr, sizeof(addr)))
     CHECK_MINUS_1(listen(listening_socket,0))
     
@@ -121,6 +128,7 @@ int main(int argc, char *argv[]){
     fdinfo[0].fd = STDIN_FILENO; fdinfo[0].events = POLLIN;
     fdinfo[1].fd = listening_socket; fdinfo[1].events = POLLIN;
     activeAgents = 2;
+    printf("Server active\n");
     
     while (!serverStop) {
 
@@ -218,7 +226,7 @@ int main(int argc, char *argv[]){
 
     CHECK_MINUS_1(shmdt(shm_p))
     CHECK_MINUS_1(close(listening_socket))
-    CHECK_MINUS_1(unlink(PATH))
+    CHECK_MINUS_1(unlink("soc"))
     CHECK_MINUS_1(shmctl(shmid,IPC_RMID,NULL))
     CHECK_MINUS_1(semctl(semid,0,IPC_RMID))
     for (int i=2; i< activeAgents; i++) {
