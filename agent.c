@@ -129,6 +129,15 @@ int main(int argc, char *argv[]){
     return 0;
 }
 
+/**
+ * @brief Checks if there is a flight available
+ * 
+ * @param start 
+ * @param destination
+ * @param number of seats
+ * @param array of available flights
+ * @param arraySize 
+ */
 static void find(char *src, char *dest, int num, struct flightInfo *array, int arraySize){
 
     for(int i=0;i<arraySize; i++){
@@ -142,6 +151,20 @@ static void find(char *src, char *dest, int num, struct flightInfo *array, int a
     }
 }
 
+/**
+ * @brief Reserves the seats for a flight if they are available
+ * and updates the server for the booking. 
+ * Probable racing condition?
+ * 
+ * @param socket 
+ * @param start 
+ * @param destination 
+ * @param airline 
+ * @param num 
+ * @param array of available flights 
+ * @param arraySize 
+ * @return int 
+ */
 static int reserve(int socket, char *src, char *dest, char *airline, int num, struct flightInfo *array, int arraySize){
     for(int i=0;i<arraySize; i++){
         if(!strcmp(array[i].airportDeparture, src) ){

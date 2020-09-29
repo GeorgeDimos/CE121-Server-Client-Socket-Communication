@@ -236,6 +236,12 @@ int main(int argc, char *argv[]){
     return 0;
 }
 
+/**
+ * @brief Counts the lines in the flight description file
+ * 
+ * @param file descriptor 
+ * @return number of lines 
+ */
 static int getfileEntries(int fd){
     char buf[512], *p; 
     int fileEntries=0, readBytes;
@@ -272,6 +278,14 @@ static int getfileEntries(int fd){
     return fileEntries;
 }
 
+/**
+ * @brief Parses the flight description file and saves
+ * the contents to memory
+ * 
+ * @param file descriptor
+ * @param shared memory pointer
+ * @return 0 for success, 1 for failure 
+ */
 static int filetoMem(int fd, const int *shm_p){
     int readBytes;
     struct flightInfo *runner;
@@ -311,6 +325,14 @@ static int filetoMem(int fd, const int *shm_p){
     return 0;
 }
 
+/**
+ * @brief Saves the shared memory contents to a file
+ * 
+ * @param file descriptor 
+ * @param shared memory pointer
+ * @param number of file entries to be saved
+ * @return 0 for success, 1 for failure  
+ */
 static int memtoFile(int fd, int *shm_p, int fileEntries){
     char str[MAXLINE], buf[MAXREAD]={'\0'};
     struct flightInfo *runner;
